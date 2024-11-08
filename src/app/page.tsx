@@ -1,64 +1,67 @@
 "use client";
 
-import { Person } from '@/types/Person';
-import { TodoItem } from '@/types/TodoItem';
-import { useState } from 'react';
+
+import { photoList } from "@/data/photoList";
+import { PhotoItem } from "./components/PhotoItem";
+import { Modal } from "./components/Modal";
+import { useState } from "react";
+import { questions } from "@/data/questions";
+import { QuestionItem } from "./components/QuestionItem";
+import { Results } from "./components/Results";
+
 
 const Page = () => {
-  const [itemInput, setItemInput] = useState('');
-  const [list, setList] = useState<TodoItem[]>([
-  
-  ]);
+  const title = 'Quiz da minha lalinha 🖤 '
+  const [answers, setAnswers] = useState<number[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [showResult, setShowResult]  = useState(false);
 
-  const handleAddButton = () => {
-    if(itemInput.trim() != '')
-    setList([...list,{label: itemInput, checked:true}]);
-    setItemInput('');
-
-  }
-
-  const deleteItem = (index: number) => { 
-     setList(
-        list.filter((item, key) => key !== index)
-     )
-  }
-
-  const toggleItem = (index: number) => {
-    let newList = [...list];
-    for(let i in newList) {
-      if(index === parseInt(i)) {
-        newList[i].checked = !newList[i].checked;
-      }
+  const loadNextQuestion = () => {
+    if(questions[currentQuestion + 1]) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      setShowResult(true);
     }
-
-    setList(newList);
   }
 
+ const handleAnswered = (answer: number) => {
+    setAnswers([... answers, answer]);
+    loadNextQuestion();
+ }
+
+ const handleRestartButton = () => {
+  setAnswers([]);
+  setCurrentQuestion(0);
+  setShowResult(false);
+ }
+  
   return (
-    <div className='w-screen h-screen flex flex-col items-center text-2xl'>
-      <h1 className='text-4xl mt-5'>TO DO</h1>
-      
-      <div className="flex w-full max-w-lg my-3 p-4 rounded-md bg-gray-700 border-2 border-gray">
-        <input
-          type='text'
-          placeholder='O que deseja fazer?'
-          className='flex-1 border border-black p-3 text-2xl text-black rounded-md mr-3'
-          value={itemInput}
-          onChange={e => setItemInput(e.target.value)}
-        />
-        <button onClick={handleAddButton}>Adicionar</button>
-      </div>
-      <p className='my-4'>{list.length} Itens na lista</p>
+    <div className='w-full h-screen flex justify-center items-center bg-blue-600'>
+      <div className="w-full max-w-xl rounded-md bg-white text-black shadow shadow-black">
+        <div className="p-5 font-bold text-2xl border-t border-gray-300">{title}</div>
+        <div className="border-t border-gray-300 my-4"></div>
+        <div className="p-5">
 
-      <ul className="w-full max-w-lg list-disc pl-5">
-        {list.map((item, index) => (
-          <li key={index}>
-            <input onClick={() => toggleItem(index)} type='checkbox' checked = {item.checked} className='w-6 h-6 mr-6'/>
-            {item.label} - <button onClick={() => deleteItem(index)} className='hover:underline'>[ deletar ]</button>
-          </li>
-        ))}
-
-      </ul>
+          {!showResult &&
+          <QuestionItem
+              question={questions[currentQuestion]}
+              count={currentQuestion + 1}
+              onAnswer={handleAnswered}></QuestionItem>
+          }
+            {showResult && 
+                <Results questions={questions} answers={answers} />
+            }
+        </div>
+        <div className="p-5 text-center border-t border-gray-300">
+          {!showResult &&
+          `${currentQuestion + 1} de ${questions.length} pergunta${questions.length === 1 ? '' : 's'}`
+          }
+          <div className="border-t border-gray-300 my-4"></div>
+          {showResult &&
+          <button onClick={handleRestartButton} className="px-3 py-2 rounded-md bg-blue-800 text-white">Reiniciar Quiz</button>}
+          
+        </div>
+    </div>
     </div>
   );
 }
